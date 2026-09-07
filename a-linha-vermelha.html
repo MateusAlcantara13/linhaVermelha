@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>A linha vermelha — quando o dado herda o preconceito</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,400;12..96,75..100,600;12..96,75..100,800&family=IBM+Plex+Mono:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,600;1,6..72,400&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --papel:#E4E2D9;
+    --papel-fundo:#DAD7CC;
+    --tinta:#17181A;
+    --tinta-suave:#4E4F4A;
+    --grade-a:#3D6B4A;
+    --grade-b:#2F5D7C;
+    --grade-c:#C9962B;
+    --grade-d:#B32317;
+    --linha:rgba(23,24,26,.18);
+    --linha-forte:rgba(23,24,26,.5);
+  }
+
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0;
+    background:var(--papel);
+    color:var(--tinta);
+    font-family:"Newsreader",Georgia,serif;
+    font-size:19px;
+    line-height:1.62;
+    font-weight:400;
+    -webkit-font-smoothing:antialiased;
+  }
+  body::before{
+    content:"";position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.5;
+    background-image:linear-gradient(var(--linha) 1px,transparent 1px),linear-gradient(90deg,var(--linha) 1px,transparent 1px);
+    background-size:44px 44px;
+    -webkit-mask-image:radial-gradient(ellipse at 50% 0%,#000 0%,transparent 70%);
+    mask-image:radial-gradient(ellipse at 50% 0%,#000 0%,transparent 70%);
+  }
+  .wrap{position:relative;z-index:1;max-width:1120px;margin:0 auto;padding:0 28px}
+  .col{max-width:64ch}
+
+  h1,h2,h3,.ui{font-family:"Bricolage Grotesque","Helvetica Neue",sans-serif;font-weight:800;letter-spacing:-.02em;line-height:1.02}
+  h1{font-size:clamp(2.9rem,8.4vw,6.6rem);margin:0}
+  h2{font-size:clamp(1.9rem,4vw,3rem);margin:0 0 .5em;line-height:1.05}
+  h3{font-size:1.22rem;font-weight:600;letter-spacing:-.01em;margin:0 0 .35em}
+  p{margin:0 0 1.15em}
+  a{color:var(--grade-d);text-decoration-thickness:1px;text-underline-offset:3px}
+  strong{font-weight:600}
+
+  /* ---------- HERO ---------- */
+  header{padding:64px 0 40px}
+  .tag{
+    font-family:"Bricolage Grotesque",sans-serif;font-weight:600;font-size:.8rem;
+    letter-spacing:.01em;color:var(--tinta-suave);margin:0 0 26px;
+  }
+  .hero-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:52px;align-items:end;margin-top:34px}
+  .lede{font-size:1.24rem;line-height:1.5;max-width:34ch;margin:26px 0 0;color:var(--tinta-suave)}
+  .lede b{color:var(--tinta);font-weight:600}
+
+  /* mapa */
+  .mapa-box{align-self:end}
+  .mapa{
+    display:grid;grid-template-columns:repeat(10,1fr);gap:3px;
+    background:var(--linha-forte);padding:3px;aspect-ratio:1;
+    box-shadow:6px 6px 0 rgba(23,24,26,.16);
+  }
+  .cel{position:relative;background:var(--papel-fundo);opacity:0;transform:scale(.72)}
+  .anim .cel{animation:pop .5s cubic-bezier(.2,.9,.3,1.2) forwards}
+  @keyframes pop{to{opacity:1;transform:scale(1)}}
+  .cel span{position:absolute;inset:0;background:#17181A;opacity:0;transition:opacity .45s ease}
+  .mapa.revelado .cel span{opacity:var(--dens)}
+  .mapa-pe{display:flex;flex-wrap:wrap;gap:14px;align-items:center;margin-top:14px}
+  .legenda{display:flex;gap:13px;font-family:"Bricolage Grotesque",sans-serif;font-size:.74rem;font-weight:600;color:var(--tinta-suave)}
+  .legenda i{display:inline-block;width:11px;height:11px;margin-right:5px;vertical-align:-1px;font-style:normal}
+
+  button{
+    font-family:"Bricolage Grotesque",sans-serif;font-size:.84rem;font-weight:600;
+    background:transparent;color:var(--tinta);border:1.5px solid var(--tinta);
+    padding:8px 15px;cursor:pointer;transition:background .16s,color .16s;
+  }
+  button:hover{background:var(--tinta);color:var(--papel)}
+  button[aria-pressed="true"],button.ativo{background:var(--tinta);color:var(--papel)}
+  :focus-visible{outline:2.5px solid var(--grade-d);outline-offset:3px}
+
+  /* ---------- estrutura ---------- */
+  section{padding:84px 0;border-top:1.5px solid var(--linha-forte)}
+  .secao-topo{display:flex;gap:18px;align-items:baseline;margin-bottom:34px}
+  .secao-num{
+    font-family:"Bricolage Grotesque",sans-serif;font-weight:800;font-size:.9rem;
+    color:var(--grade-d);padding-top:.5em;flex:none;
+  }
+
+  /* mecanismos */
+  .mecs{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:0;margin-top:16px}
+  .mec{padding:22px 24px 26px;border-left:4px solid var(--cor)}
+  .mec:not(:last-child){box-shadow:inset -1px 0 0 var(--linha)}
+  .mec p{font-size:.95rem;line-height:1.5;margin:0;color:var(--tinta-suave)}
+  .mec h3{color:var(--cor)}
+
+  /* dados */
+  .juros{margin:30px 0 10px;max-width:640px}
+  .barra-linha{display:grid;grid-template-columns:minmax(120px,150px) 1fr auto;gap:14px;align-items:center;margin-bottom:11px}
+  .barra-nome{font-family:"Bricolage Grotesque",sans-serif;font-size:.83rem;font-weight:600}
+  .barra-trilho{height:19px;background:var(--papel-fundo);box-shadow:inset 0 0 0 1px var(--linha)}
+  .barra-fill{height:100%;background:var(--cor);width:0;transition:width 1.1s cubic-bezier(.2,.8,.3,1)}
+  .barra-val{font-family:"Bricolage Grotesque",sans-serif;font-size:.9rem;font-weight:800;min-width:62px;text-align:right}
+  .fonte{font-size:.83rem;color:var(--tinta-suave);font-style:italic}
+
+  .destaque{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:30px;margin:44px 0 8px}
+  .num-grande{font-family:"Bricolage Grotesque",sans-serif;font-weight:800;font-size:3.5rem;line-height:.9;color:var(--grade-d);display:block;margin-bottom:10px}
+  .destaque p{font-size:.94rem;line-height:1.5;color:var(--tinta-suave);margin:0}
+
+  /* simulador */
+  .sim{background:var(--papel-fundo);padding:30px;margin-top:26px;box-shadow:5px 5px 0 rgba(23,24,26,.14)}
+  .sim-botoes{display:flex;flex-wrap:wrap;gap:9px;margin-bottom:26px}
+  .sim-vars{font-family:"Bricolage Grotesque",sans-serif;font-size:.8rem;color:var(--tinta-suave);margin:-16px 0 24px}
+  .sim-vars code{background:rgba(23,24,26,.09);padding:2px 6px;font-family:inherit;font-weight:600}
+  .sim-vars code.fora{text-decoration:line-through;opacity:.42}
+  .sim-corpo{display:grid;grid-template-columns:1fr 240px;gap:34px;align-items:start}
+  .medidor{border:1.5px solid var(--tinta);padding:19px;text-align:center}
+  .medidor .val{font-family:"Bricolage Grotesque",sans-serif;font-weight:800;font-size:3.1rem;line-height:1;transition:color .3s}
+  .medidor .rot{font-family:"Bricolage Grotesque",sans-serif;font-size:.76rem;font-weight:600;color:var(--tinta-suave);margin-top:7px;line-height:1.35}
+  .decomp{margin-top:15px;padding-top:13px;border-top:1px solid var(--linha);font-family:"Bricolage Grotesque",sans-serif;font-size:.76rem}
+  .decomp div{display:flex;justify-content:space-between;gap:10px;padding:3px 0}
+  .decomp span{color:var(--tinta-suave);text-align:left}
+  .decomp b{font-weight:800;font-variant-numeric:tabular-nums}
+  #m-criada{color:var(--grade-d)}
+  .veredito{font-family:"Bricolage Grotesque",sans-serif;font-size:.82rem;font-weight:600;margin-top:13px;padding-top:13px;border-top:1px solid var(--linha)}
+  .sim-nota{font-size:.95rem;line-height:1.5;margin:22px 0 0;padding-top:20px;border-top:1.5px solid var(--linha-forte);min-height:3em}
+
+  /* laboratorio ao vivo */
+  .lab{margin-top:28px}
+  .lab-ctrl{display:flex;flex-wrap:wrap;gap:22px;align-items:flex-end;margin-bottom:20px}
+  .slider-box{display:flex;flex-direction:column;gap:5px}
+  .slider-box label{font-family:"Bricolage Grotesque",sans-serif;font-size:.78rem;font-weight:600;color:var(--tinta-suave)}
+  .slider-box label b{color:var(--grade-d);font-variant-numeric:tabular-nums}
+  input[type=range]{width:190px;accent-color:var(--grade-d);cursor:pointer}
+  #btn-rodar{font-size:.92rem;padding:11px 22px;background:var(--grade-d);color:var(--papel);border-color:var(--grade-d)}
+  #btn-rodar:hover{background:var(--tinta);border-color:var(--tinta)}
+  #btn-rodar[disabled]{opacity:.45;cursor:wait}
+
+  .lab-telas{display:grid;grid-template-columns:1.15fr 1fr;gap:0;background:#141517;box-shadow:6px 6px 0 rgba(23,24,26,.2)}
+  .painel{padding:20px 22px;font-family:"IBM Plex Mono",monospace;font-size:12.5px;line-height:1.75;color:#C9C6BC;overflow-x:auto}
+  .painel-cod{border-right:1px solid rgba(228,226,217,.14)}
+  .painel h4{font-family:"Bricolage Grotesque",sans-serif;font-size:.72rem;font-weight:600;color:#7C7E7A;margin:0 0 14px}
+  pre{margin:0;white-space:pre-wrap;word-break:break-word}
+  .blk{display:block;padding:3px 8px;margin:0 -8px;border-left:2px solid transparent;opacity:.34;transition:opacity .3s,background .3s,border-color .3s}
+  .blk.on{opacity:1;background:rgba(179,35,23,.16);border-left-color:var(--grade-d)}
+  .blk.feito{opacity:.72}
+  .cmt{color:#6F7A6C}
+  .kw{color:#D98C7A}
+  .str{color:#B7C08A}
+  .num{color:#E0B96B;font-weight:500}
+  .par{color:#fff;font-weight:600;background:rgba(179,35,23,.3);padding:0 3px}
+  .destaque-linha{background:rgba(224,185,107,.14)}
+
+  .term{min-height:330px}
+  .term .ln{opacity:0;animation:sobe .3s ease forwards}
+  @keyframes sobe{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+  .term .cmd{color:#8FB8A0}
+  .term .out{color:#C9C6BC;padding-left:14px}
+  .term .bad{color:#E8776B;font-weight:600}
+  .term .good{color:#8FB8A0;font-weight:600}
+  .cursor{display:inline-block;width:7px;height:14px;background:#8FB8A0;vertical-align:-2px;animation:pisca 1s steps(2) infinite}
+  @keyframes pisca{50%{opacity:0}}
+
+  /* acoes */
+  .acoes{list-style:none;padding:0;margin:22px 0 0;max-width:66ch}
+  .acoes li{padding:15px 0 15px 30px;border-top:1px solid var(--linha);position:relative;font-size:1rem;line-height:1.5}
+  .acoes li::before{content:"";position:absolute;left:0;top:23px;width:13px;height:13px;background:var(--grade-a)}
+  .acoes b{font-family:"Bricolage Grotesque",sans-serif;font-weight:600}
+
+  /* fecho + refs */
+  .fecho{font-size:clamp(1.5rem,3.4vw,2.3rem);line-height:1.25;font-weight:400;max-width:22ch;font-family:"Bricolage Grotesque",sans-serif;letter-spacing:-.02em}
+  .refs{font-size:.9rem;line-height:1.55;columns:2;column-gap:44px;color:var(--tinta-suave)}
+  .refs p{break-inside:avoid;margin-bottom:1em}
+  footer{padding:44px 0 70px;font-size:.85rem;color:var(--tinta-suave);border-top:1.5px solid var(--linha-forte)}
+
+  @media (max-width:860px){
+    body{font-size:17.5px}
+    .hero-grid,.sim-corpo{grid-template-columns:1fr;gap:34px}
+    .refs{columns:1}
+    .mec{border-left:4px solid var(--cor);box-shadow:none!important}
+    section{padding:60px 0}
+  }
+  @media (prefers-reduced-motion:reduce){
+    *{animation-duration:.01ms!important;transition-duration:.01ms!important}
+    .cel{opacity:1;transform:none}
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+<header>
+  <p class="tag">Museu Afro Brasil × Ciência de Dados · Mateus Alcântara</p>
+  <h1>A linha<br>vermelha</h1>
+  <div class="hero-grid">
+    <div>
+      <p class="lede">Nos anos 1930, bancos americanos desenhavam a lápis vermelho os bairros onde não emprestariam dinheiro. Hoje ninguém precisa desenhar nada. <b>O modelo aprende a linha sozinho.</b></p>
+    </div>
+    <div class="mapa-box">
+      <div class="mapa" id="mapa" aria-hidden="true"></div>
+      <div class="mapa-pe">
+        <button id="btn-mapa" aria-pressed="false">Ver quem mora aqui</button>
+        <div class="legenda">
+          <span><i style="background:var(--grade-a)"></i>Melhor</span>
+          <span><i style="background:var(--grade-c)"></i>Declínio</span>
+          <span><i style="background:var(--grade-d)"></i>Perigoso</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<section>
+  <div class="secao-topo"><span class="secao-num">I</span><h2>O que a gente foi ver</h2></div>
+  <div class="col">
+    <p>Na visita ao Museu Afro Brasil, no Ibirapuera, a conversa girou em torno de uma ideia incômoda: existe uma versão da sociedade que quase ninguém olha de frente, e o modo como enxergamos essa parte não nasceu por acaso. Foi construído. Século após século, alguém decidiu quem seria retratado como confiável, quem seria retratado como ameaça, e quem simplesmente não seria retratado.</p>
+    <p>Essa é uma questão de história, de arte, de política. Só que ela também é uma questão técnica, e é aí que este trabalho começa.</p>
+    <p>Um dado é um registro do que aconteceu. Se o que aconteceu foi injusto, o registro é fiel à injustiça. Um modelo treinado nesse registro não copia a nossa melhor intenção: ele copia o nosso histórico. A diferença é que agora a decisão sai com cara de matemática, e discutir com uma planilha é bem mais difícil do que discutir com um gerente.</p>
+  </div>
+</section>
+
+<section>
+  <div class="secao-topo"><span class="secao-num">II</span><h2>Quatro maneiras de um número herdar um preconceito</h2></div>
+  <div class="mecs">
+    <div class="mec" style="--cor:var(--grade-d)">
+      <h3>Histórico enviesado</h3>
+      <p>O modelo aprende com decisões humanas do passado. Se por trinta anos o banco aprovou menos crédito para um grupo, é isso que o modelo entende como "cliente bom".</p>
+    </div>
+    <div class="mec" style="--cor:var(--grade-c)">
+      <h3>Variável proxy</h3>
+      <p>Tirar a coluna "raça" não resolve. CEP, bairro, escola de origem e nome carregam a mesma informação, porque a segregação territorial deixou ela lá.</p>
+    </div>
+    <div class="mec" style="--cor:var(--grade-b)">
+      <h3>Alvo mal escolhido</h3>
+      <p>Prever "quem o banco aprovou" é diferente de prever "quem pagou". Quase sempre só existe dado do primeiro, e é ele que vira o objetivo do modelo.</p>
+    </div>
+    <div class="mec" style="--cor:var(--grade-a)">
+      <h3>Retroalimentação</h3>
+      <p>A decisão de hoje vira o dado de amanhã. Quem foi negado não constrói histórico, e sem histórico é negado de novo. O erro se confirma sozinho.</p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="secao-topo"><span class="secao-num">III</span><h2>Não é hipótese. É o Brasil de agora</h2></div>
+  <div class="col">
+    <p>O Relatório de Cidadania Financeira 2025, do Banco Central, foi o primeiro levantamento oficial a cruzar crédito com gênero e raça. Entre pessoas de baixa renda inscritas no Cadastro Único, com dados de 2024, a taxa média de juros ao ano ficou assim:</p>
+  </div>
+
+  <div class="juros" id="juros">
+    <div class="barra-linha"><span class="barra-nome">Mulheres negras</span><div class="barra-trilho"><div class="barra-fill" style="--cor:var(--grade-d)" data-p="100"></div></div><span class="barra-val">140%</span></div>
+    <div class="barra-linha"><span class="barra-nome">Mulheres brancas</span><div class="barra-trilho"><div class="barra-fill" style="--cor:var(--grade-c)" data-p="91.4"></div></div><span class="barra-val">128%</span></div>
+    <div class="barra-linha"><span class="barra-nome">Homens negros</span><div class="barra-trilho"><div class="barra-fill" style="--cor:var(--grade-b)" data-p="78.6"></div></div><span class="barra-val">110%</span></div>
+    <div class="barra-linha"><span class="barra-nome">Homens brancos</span><div class="barra-trilho"><div class="barra-fill" style="--cor:var(--grade-a)" data-p="69.3"></div></div><span class="barra-val">97%</span></div>
+  </div>
+  <p class="fonte">Banco Central do Brasil, Relatório de Cidadania Financeira 2025, com dados de 2024.</p>
+
+  <div class="col" style="margin-top:34px">
+    <p>Ninguém escreveu numa linha de código que pessoa negra paga mais caro. O relatório aponta causas como a ausência de histórico de crédito formal e a percepção de risco maior por parte das instituições. Quer dizer: as quatro engrenagens da seção anterior, funcionando ao mesmo tempo.</p>
+    <p>Fora do crédito, o padrão se repete com consequências ainda mais duras.</p>
+  </div>
+
+  <div class="destaque">
+    <div>
+      <span class="num-grande">90,5%</span>
+      <p>das pessoas presas por reconhecimento facial no Brasil, entre os casos com informação de cor disponível, eram negras. Levantamento da Rede de Observatórios da Segurança.</p>
+    </div>
+    <div>
+      <span class="num-grande">105</span>
+      <p>pessoas atingidas por falhas do Smart Sampa segundo pesquisa de 2026 do Lapin, do Instituto Peregum e da Rede Liberdade: 23 levadas por engano e 82 presas e depois liberadas.</p>
+    </div>
+    <div>
+      <span class="num-grande">34%</span>
+      <p>de erro na identificação de mulheres de pele escura, contra menos de 1% em homens de pele clara, no estudo Gender Shades, de Joy Buolamwini, no MIT.</p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="secao-topo"><span class="secao-num">IV</span><h2>O experimento: apague a coluna e veja o que sobra</h2></div>
+  <div class="col">
+    <p>Este código roda de verdade, agora, no seu navegador. Ele cria uma população de 6 mil pessoas e um banco fictício onde o analista humano do passado aprovava crédito olhando a capacidade real de pagar, mas descontava pontos de quem era negro e de quem morava na periferia. Esse histórico vira a base de treino de uma regressão logística.</p>
+    <p>Escolha um cenário, ajuste o preconceito do analista e aperte rodar. A pergunta é simples: apagar a coluna "raça" resolve?</p>
+  </div>
+
+  <div class="lab">
+    <div class="sim-botoes" id="sim-botoes"></div>
+    <div class="lab-ctrl">
+      <div class="slider-box">
+        <label for="s-regiao">O analista descontava por morar na periferia: <b id="l-regiao">0,75</b></label>
+        <input type="range" id="s-regiao" min="0" max="1.5" step="0.05" value="0.75">
+      </div>
+      <div class="slider-box">
+        <label for="s-raca">E descontava por ser negro: <b id="l-raca">0,45</b></label>
+        <input type="range" id="s-raca" min="0" max="1.5" step="0.05" value="0.45">
+      </div>
+      <button id="btn-rodar">Rodar o modelo</button>
+    </div>
+
+    <div class="lab-telas">
+      <div class="painel painel-cod">
+        <h4>modelo_credito.py</h4>
+        <pre id="codigo"></pre>
+      </div>
+      <div class="painel term">
+        <h4>saída</h4>
+        <pre id="terminal"></pre>
+      </div>
+    </div>
+
+    <div class="sim" style="margin-top:0">
+      <div class="sim-corpo">
+        <div>
+          <div class="barra-linha"><span class="barra-nome">Aprovação, pessoas negras</span><div class="barra-trilho"><div class="barra-fill" id="f-negra" style="--cor:var(--grade-d)"></div></div><span class="barra-val" id="v-negra">—</span></div>
+          <div class="barra-linha"><span class="barra-nome">Aprovação, pessoas brancas</span><div class="barra-trilho"><div class="barra-fill" id="f-branca" style="--cor:var(--grade-b)"></div></div><span class="barra-val" id="v-branca">—</span></div>
+          <div class="barra-linha" style="margin-top:22px"><span class="barra-nome">Bons pagadores negados, negras</span><div class="barra-trilho"><div class="barra-fill" id="f-bpn" style="--cor:var(--grade-d)"></div></div><span class="barra-val" id="v-bpn">—</span></div>
+          <div class="barra-linha"><span class="barra-nome">Bons pagadores negados, brancas</span><div class="barra-trilho"><div class="barra-fill" id="f-bpb" style="--cor:var(--grade-b)"></div></div><span class="barra-val" id="v-bpb">—</span></div>
+        </div>
+        <div class="medidor">
+          <div class="val" id="m-val">—</div>
+          <div class="rot">Razão de aprovação<br>entre negros e brancos</div>
+          <div class="decomp">
+            <div><span>Desigualdade que já existia</span><b id="m-piso">—</b></div>
+            <div><span>Criada pelo modelo</span><b id="m-criada">—</b></div>
+          </div>
+          <div class="veredito" id="m-ver">—</div>
+        </div>
+      </div>
+      <p class="sim-nota" id="sim-nota"></p>
+    </div>
+  </div>
+
+  <div class="col" style="margin-top:36px">
+    <p>A regra dos quatro quintos, usada em auditoria de discriminação indireta, diz que uma razão abaixo de 0,80 já é indício de tratamento desigual. Com os valores originais, nenhum cenário passa limpo.</p>
+    <p>O resultado mais importante é o do cenário B. A coluna "raça" simplesmente não existe naquele modelo, e mesmo assim ele nega crédito a <strong><span data-bind="B.bpn">—</span> dos bons pagadores negros</strong> contra <span data-bind="B.bpb">—</span> dos brancos. O CEP fez o trabalho que a coluna apagada fazia. Isso tem nome em auditoria de algoritmos: discriminação por proxy.</p>
+    <p>E olha o cenário C: tirando também o CEP, a razão sobe para <span data-bind="C.razao">—</span> e mesmo assim não chega em 0,80. A renda, sozinha, já carrega parte da desigualdade. Não existe variável inocente numa sociedade desigual, e é por isso que a resposta não é "apagar colunas até limpar" e sim <strong>medir o resultado e assumir responsabilidade por ele</strong>.</p>
+    <p>O cenário D merece atenção, porque o resultado dele parece uma contradição. O modelo aprende com quem realmente pagou, e mesmo assim o medidor continua vermelho. A explicação está no piso: nessa população simulada, pessoas negras de fato pagam menos, <span data-bind="real.negra">—</span> contra <span data-bind="real.branca">—</span>. Não por serem negras, mas porque a renda é menor, e a renda é menor porque a segregação as colocou na região mais pobre. Essa desigualdade é anterior a qualquer linha de código.</p>
+    <p>Por isso o medidor separa as duas coisas. O cenário A acrescenta muita discriminação por conta própria; o cenário D acrescenta quase nada e ainda assim reprova. A regra dos 4/5 não pergunta de quem é a culpa, ela mede o que aconteceu com as pessoas no fim. E aí chega a conclusão que fecha o trabalho: <strong>passar na regra exigiria compensar de propósito</strong>, com limiar diferente por grupo, reponderação da base ou política de crédito específica. Um modelo que só evita olhar nunca chega lá.</p>
+
+    <p>Vale fazer um último teste aí em cima: zere os dois controles de preconceito e rode de novo. A discriminação criada pelo modelo some quase por completo, e o que fica é exatamente o piso. O algoritmo, sozinho, é capaz no máximo de não piorar. Melhorar é decisão de gente.</p>
+  </div>
+</section>
+
+<section>
+  <div class="secao-topo"><span class="secao-num">V</span><h2>O que dá para fazer</h2></div>
+  <div class="col"><p>Nada disso leva à conclusão de que tecnologia é ruim. Leva a uma conclusão bem menos confortável: sistema justo não acontece por acidente, ele acontece por decisão de projeto. Algumas decisões possíveis:</p></div>
+  <ul class="acoes">
+    <li><b>Medir antes de subir.</b> Rodar a taxa de aprovação por grupo e a regra dos 4/5 como parte do teste do modelo, do mesmo jeito que se mede acurácia.</li>
+    <li><b>Olhar o erro que dói.</b> Acurácia geral esconde tudo. O que importa é quem é prejudicado quando o modelo erra, e o falso negativo por grupo mostra isso.</li>
+    <li><b>Perguntar o que o alvo realmente é.</b> "Foi aprovado" e "pagou" não são a mesma coluna. Trocar uma pela outra muda o modelo inteiro.</li>
+    <li><b>Documentar a base.</b> De onde veio, quem está representado, quem ficou de fora, que decisão humana gerou os rótulos.</li>
+    <li><b>Usar a LGPD.</b> O artigo 20 garante ao titular o direito de pedir revisão de decisões tomadas apenas por sistema automatizado que afetem seus interesses.</li>
+    <li><b>Diversificar quem constrói.</b> Boa parte dos vieses passa despercebida porque não havia ninguém na sala para quem aquilo era óbvio.</li>
+  </ul>
+</section>
+
+<section>
+  <div class="secao-topo"><span class="secao-num">VI</span><h2>Fecho</h2></div>
+  <p class="fecho">O algoritmo não inventou a desigualdade. Ele automatizou, acelerou e deu a ela a aparência de conta.</p>
+  <div class="col" style="margin-top:34px">
+    <p>Sair do museu e voltar para uma tela de código não é mudar de assunto. É o mesmo assunto em outro suporte. A pergunta que o museu faz sobre um retrato do século XIX é a mesma que a gente precisa fazer sobre um dataset: quem escolheu o que entra aqui, e o que essa escolha diz sobre quem ficou de fora?</p>
+  </div>
+</section>
+
+<section>
+  <div class="secao-topo"><span class="secao-num">VII</span><h2>Referências</h2></div>
+  <div class="refs">
+    <p>BANCO CENTRAL DO BRASIL. <em>Relatório de Cidadania Financeira 2025</em>. Brasília, 2025.</p>
+    <p>SILVA, Tarcízio. <em>Racismo algorítmico: inteligência artificial e discriminação nas redes digitais</em>. São Paulo: Edições Sesc, 2022.</p>
+    <p>REDE DE OBSERVATÓRIOS DA SEGURANÇA. <em>Retratos da violência: cinco meses de monitoramento, análises e descobertas</em>. CESeC, 2019.</p>
+    <p>LAPIN; INSTITUTO DE REFERÊNCIA NEGRA PEREGUM; REDE LIBERDADE. Pesquisa sobre o Smart Sampa. São Paulo, 2026.</p>
+    <p>BUOLAMWINI, Joy; GEBRU, Timnit. <em>Gender Shades: intersectional accuracy disparities in commercial gender classification</em>. MIT Media Lab, 2018.</p>
+    <p>O'NEIL, Cathy. <em>Algoritmos de destruição em massa</em>. Santo André: Rua do Sabão, 2020.</p>
+    <p>ANGWIN, Julia et al. <em>Machine Bias</em>. ProPublica, 2016. Análise do algoritmo COMPAS.</p>
+    <p>ALMEIDA, Silvio. <em>Racismo estrutural</em>. São Paulo: Jandaíra, 2019.</p>
+    <p>BRASIL. Lei nº 13.709/2018 (LGPD), art. 20.</p>
+  </div>
+</section>
+
+<footer>
+  <p>Mapa do topo: representação ilustrativa inspirada nos mapas de <em>redlining</em> produzidos pela Home Owners' Loan Corporation nos Estados Unidos a partir de 1935. Os dados do experimento da seção IV são simulados, gerados pelo script <code>experimento_credito.py</code> que acompanha este trabalho, e servem para demonstrar o mecanismo, não para estimar taxas reais de mercado.</p>
+</footer>
+
+</div>
+
+<script>
+/* ---------- mapa do topo ---------- */
+(function(){
+  const mapa = document.getElementById('mapa');
+  const N = 10;
+  const cores = ['var(--grade-a)','var(--grade-b)','var(--grade-c)','var(--grade-d)'];
+  const celulas = [];
+
+  for(let y=0;y<N;y++){
+    for(let x=0;x<N;x++){
+      // distancia do "centro rico" (canto superior esquerdo)
+      const d = Math.sqrt(Math.pow(x/N,2)+Math.pow(y/N,2));
+      const ruido = ((x*7+y*13)%5)/22;
+      const t = Math.min(0.999, d*0.82+ruido);
+      const grau = Math.floor(t*4);
+      const cel = document.createElement('div');
+      cel.className='cel';
+      cel.style.background=cores[grau];
+      cel.style.animationDelay=((x+y)*22)+'ms';
+      // densidade da populacao negra: sobe junto com o grau de "risco"
+      const dens = Math.min(0.86, 0.08 + t*0.9);
+      const marca = document.createElement('span');
+      marca.style.setProperty('--dens', dens.toFixed(2));
+      cel.appendChild(marca);
+      mapa.appendChild(cel);
+      celulas.push(cel);
+    }
+  }
+  requestAnimationFrame(()=>mapa.classList.add('anim'));
+
+  const btn = document.getElementById('btn-mapa');
+  btn.addEventListener('click',()=>{
+    const on = mapa.classList.toggle('revelado');
+    btn.setAttribute('aria-pressed', on);
+    btn.textContent = on ? 'Ver o mapa de risco' : 'Ver quem mora aqui';
+  });
+})();
+
+/* ---------- barras de juros: animam ao entrar na tela ---------- */
+(function(){
+  const alvo = document.getElementById('juros');
+  const io = new IntersectionObserver((ents)=>{
+    ents.forEach(e=>{
+      if(e.isIntersecting){
+        alvo.querySelectorAll('.barra-fill').forEach(b=>b.style.width=b.dataset.p+'%');
+        io.disconnect();
+      }
+    });
+  },{threshold:.4});
+  io.observe(alvo);
+})();
+
+/* ---------- laboratorio: regressao logistica rodando no navegador ---------- */
+(function(){
+  /* --- utilitarios numericos --- */
+  const N = 6000, NCEP = 12, SEED = 42;
+  function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+  function gauss(r){let u=0,v=0;while(u===0)u=r();while(v===0)v=r();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v)}
+  function quantil(arr,q){const a=[...arr].sort((x,y)=>x-y);const p=(a.length-1)*q,b=Math.floor(p),f=p-b;return a[b+1]!==undefined?a[b]+f*(a[b+1]-a[b]):a[b]}
+  const z=(v,m,s)=>(v-m)/(s||1);
+  const media=a=>a.reduce((x,y)=>x+y,0)/a.length;
+  const dp=(a,m)=>Math.sqrt(a.reduce((x,y)=>x+(y-m)**2,0)/a.length);
+
+  /* --- 1 a 3: gerar populacao, capacidade real e historico do banco --- */
+  function gerarPopulacao(biasRegiao, biasRaca){
+    const r = mulberry32(SEED), p = [];
+    for(let i=0;i<N;i++){
+      const negra = r() < 0.56;
+      const regiao = r() < (negra ? 0.72 : 0.28) ? 1 : 0;
+      const cep = regiao===0 ? Math.floor(r()*(NCEP/2)) : NCEP/2 + Math.floor(r()*(NCEP/2));
+      p.push({
+        negra, regiao, cep,
+        renda: Math.exp((regiao===0?8.6:8.0) + gauss(r)*0.45),
+        idade: 21 + Math.floor(r()*45),
+        emprego: Math.max(0, Math.min(40,(regiao===0?5.5:4.5) + gauss(r)*3))
+      });
+    }
+    const lr=p.map(x=>Math.log(x.renda)), mL=media(lr), sL=dp(lr,mL);
+    const em=p.map(x=>x.emprego), mE=media(em), sE=dp(em,mE);
+    const id=p.map(x=>x.idade), mI=media(id), sI=dp(id,mI);
+
+    p.forEach((x,i)=>{ x.scoreReal = 0.9*z(lr[i],mL,sL) + 0.5*z(x.emprego,mE,sE) + 0.2*z(x.idade,mI,sI) + gauss(r)*0.8; });
+    const cutR = quantil(p.map(x=>x.scoreReal), 0.35);
+    p.forEach(x=>{
+      x.paga = x.scoreReal > cutR ? 1 : 0;
+      x.scoreAnalista = x.scoreReal - biasRegiao*x.regiao - biasRaca*(x.negra?1:0);
+    });
+    const cutH = quantil(p.map(x=>x.scoreAnalista), 0.35);
+    p.forEach(x=>{ x.aprovadoPassado = x.scoreAnalista > cutH ? 1 : 0; });
+    return p;
+  }
+
+  /* --- 4: treinar a regressao logistica por gradiente descendente --- */
+  function treinar(pop, usa, alvo){
+    const corte = Math.floor(pop.length*0.7);
+    const X = pop.map(x=>{
+      const f=[];
+      if(usa.includes('raca')) f.push(x.negra?1:0);
+      if(usa.includes('cep')) for(let k=0;k<NCEP;k++) f.push(x.cep===k?1:0);
+      f.push(Math.log(x.renda), x.idade, x.emprego);
+      return f;
+    });
+    const d = X[0].length, mu=[], sd=[];
+    for(let j=0;j<d;j++){
+      let s=0; for(let i=0;i<corte;i++) s+=X[i][j]; mu[j]=s/corte;
+      let v=0; for(let i=0;i<corte;i++) v+=(X[i][j]-mu[j])**2; sd[j]=Math.sqrt(v/corte)||1;
+    }
+    const Z = X.map(row=>row.map((v,j)=>(v-mu[j])/sd[j]));
+    const y = pop.map(x=>x[alvo]);
+    let w = new Array(d).fill(0), b = 0;
+    for(let e=0;e<400;e++){
+      const g = new Array(d).fill(0); let gb=0;
+      for(let i=0;i<corte;i++){
+        let s=b; for(let j=0;j<d;j++) s+=w[j]*Z[i][j];
+        const err = 1/(1+Math.exp(-s)) - y[i];
+        for(let j=0;j<d;j++) g[j]+=err*Z[i][j];
+        gb+=err;
+      }
+      for(let j=0;j<d;j++) w[j]-=0.5*g[j]/corte;
+      b-=0.5*gb/corte;
+    }
+    let apN=0,cN=0,apB=0,cB=0,bN=0,bNneg=0,bB=0,bBneg=0;
+    for(let i=corte;i<pop.length;i++){
+      let s=b; for(let j=0;j<d;j++) s+=w[j]*Z[i][j];
+      const pred = 1/(1+Math.exp(-s)) > 0.5 ? 1 : 0;
+      const x = pop[i];
+      if(x.negra){ cN++; apN+=pred; if(x.paga){ bN++; if(!pred) bNneg++; } }
+      else { cB++; apB+=pred; if(x.paga){ bB++; if(!pred) bBneg++; } }
+    }
+    return { negra:apN/cN*100, branca:apB/cB*100, razao:(apN/cN)/(apB/cB),
+             bpn:bNneg/bN*100, bpb:bBneg/bB*100 };
+  }
+
+  /* --- os cenarios --- */
+  const cenarios = [
+    { id:'A', rotulo:'A · com raça', usa:['raca','cep'], alvo:'aprovadoPassado',
+      alvoTxt:'aprovado_no_passado',
+      nota:'O ponto de partida. O modelo enxerga a raça e reproduz o histórico do banco quase perfeitamente. Quase todo mundo branco que pagaria o empréstimo é aprovado sem problema; entre as pessoas negras que pagariam, um quarto é recusado.' },
+    { id:'B', rotulo:'B · sem raça', usa:['cep'], alvo:'aprovadoPassado',
+      alvoTxt:'aprovado_no_passado',
+      nota:'Aqui está o resultado central do trabalho. A coluna "raça" foi apagada e a razão mal se mexeu, continuando abaixo do limite de 0,80. O CEP assumiu a função. Um modelo que nunca viu a cor de ninguém continua negando crédito a um em cada cinco bons pagadores negros.' },
+    { id:'C', rotulo:'C · sem raça e sem CEP', usa:[], alvo:'aprovadoPassado',
+      alvoTxt:'aprovado_no_passado',
+      nota:'Tirar o CEP ajuda bem mais do que tirar a raça, e mesmo assim não chega a 0,80. A renda também carrega a marca da desigualdade histórica. Não existe variável neutra: existe variável auditada.' },
+    { id:'D', rotulo:'D · alvo corrigido', usa:['cep'], alvo:'paga',
+      alvoTxt:'paga_de_fato',
+      nota:'Aqui o CEP volta, mas o modelo aprende com quem realmente pagou, e não com quem o analista aprovou. O medidor continua vermelho, e isso confunde à primeira vista: a razão parou a um passo do piso da desigualdade que já existe na população. Ou seja, o modelo praticamente não acrescenta discriminação nenhuma. O que sobra veio do mundo, não do código. Para passar na regra dos 4/5 não bastaria escolher variáveis melhores: seria preciso compensar a desigualdade de propósito.' }
+  ];
+
+  /* --- elementos --- */
+  const box = document.getElementById('sim-botoes');
+  const nota = document.getElementById('sim-nota');
+  const elCod = document.getElementById('codigo');
+  const elTerm = document.getElementById('terminal');
+  const btnRodar = document.getElementById('btn-rodar');
+  const sRegiao = document.getElementById('s-regiao');
+  const sRaca = document.getElementById('s-raca');
+  const br = n => n.toFixed(1).replace('.',',');
+  const br3 = n => n.toFixed(3).replace('.',',');
+  let atual = cenarios[0], cache = {}, hist = {}, real = {}, rodando = false;
+
+  /* --- painel de codigo --- */
+  function pintarCodigo(c){
+    const cols = ['renda','idade','tempo_emprego'];
+    const lista = (c.usa.includes('cep') ? ['cep'] : []).concat(cols)
+      .map(v=>`<span class="str">"${v}"</span>`).join(', ');
+    const bR = (+sRegiao.value).toFixed(2).replace('.',','), bC = (+sRaca.value).toFixed(2).replace('.',',');
+    elCod.innerHTML =
+`<span class="blk" id="k1"><span class="cmt"># 1 · quem é essa população</span>
+raca   = escolher([<span class="str">"negra"</span>, <span class="str">"branca"</span>], p=[<span class="num">0.56</span>, <span class="num">0.44</span>])
+regiao = binomial(<span class="num">1</span>, onde(raca==<span class="str">"negra"</span>, <span class="num">0.72</span>, <span class="num">0.28</span>))
+cep    = onde(regiao==<span class="num">0</span>, centro, periferia)
+renda  = exp(normal(onde(regiao==<span class="num">0</span>, <span class="num">8.6</span>, <span class="num">8.0</span>), <span class="num">0.45</span>))</span>
+
+<span class="blk" id="k2"><span class="cmt"># 2 · quem realmente consegue pagar (não olha raça nem CEP)</span>
+score_real   = <span class="num">0.9</span>*z(log(renda)) + <span class="num">0.5</span>*z(tempo_emprego) + <span class="num">0.2</span>*z(idade) + ruído
+paga_de_fato = score_real &gt; quantil(score_real, <span class="num">0.35</span>)</span>
+
+<span class="blk" id="k3"><span class="cmt"># 3 · o histórico do banco: o analista descontava pontos</span>
+score_analista      = score_real - <span class="par">${bR}</span>*regiao - <span class="par">${bC}</span>*(raca==<span class="str">"negra"</span>)
+aprovado_no_passado = score_analista &gt; quantil(score_analista, <span class="num">0.35</span>)</span>
+
+<span class="blk" id="k4"><span class="cmt"># 4 · o modelo aprende com esse histórico</span>
+X = df[[${lista}]]
+y = df[<span class="str">"${c.alvoTxt}"</span>]
+modelo = <span class="kw">LogisticRegression</span>().fit(X_treino, y_treino)</span>
+
+<span class="blk" id="k5"><span class="cmt"># 5 · auditoria: regra dos 4/5</span>
+razao = aprovacao(negras) / aprovacao(brancas)
+<span class="kw">print</span>(razao &lt; <span class="num">0.80</span>)</span>`;
+  }
+
+  /* --- calcular tudo (só refaz quando o viés muda) --- */
+  let ultimoBias = null;
+  function calcular(){
+    const chave = sRegiao.value + '|' + sRaca.value;
+    if(chave === ultimoBias) return;
+    ultimoBias = chave;
+    const pop = gerarPopulacao(+sRegiao.value, +sRaca.value);
+    const negras = pop.filter(x=>x.negra), brancas = pop.filter(x=>!x.negra);
+    const m = (arr,k)=>arr.reduce((a,b)=>a+b[k],0)/arr.length*100;
+    real = { negra:m(negras,'paga'), branca:m(brancas,'paga') };
+    real.razao = real.negra/real.branca;
+    hist = { negra:m(negras,'aprovadoPassado'), branca:m(brancas,'aprovadoPassado') };
+    hist.razao = hist.negra/hist.branca;
+    cache = {};
+    cenarios.forEach(c=>{ cache[c.id] = treinar(pop, c.usa, c.alvo); });
+    document.querySelectorAll('[data-bind]').forEach(el=>{
+      const [id,campo] = el.dataset.bind.split('.');
+      const fonte = id==='real' ? real : id==='hist' ? hist : cache[id];
+      const v = fonte[campo];
+      el.textContent = campo==='razao' ? br3(v) : br(v)+'%';
+    });
+  }
+
+  /* --- resultado nas barras --- */
+  function mostrarResultado(c){
+    const r = cache[c.id];
+    const set = (f,v,n,max)=>{ document.getElementById(f).style.width=(n/max*100)+'%';
+                               document.getElementById(v).textContent=br(n)+'%'; };
+    set('f-negra','v-negra',r.negra,100);
+    set('f-branca','v-branca',r.branca,100);
+    set('f-bpn','v-bpn',r.bpn,35);
+    set('f-bpb','v-bpb',r.bpb,35);
+    const mv = document.getElementById('m-val');
+    mv.textContent = br3(r.razao);
+    mv.style.color = r.razao < 0.8 ? 'var(--grade-d)' : 'var(--grade-a)';
+    const criada = Math.max(0, real.razao - r.razao);
+    document.getElementById('m-piso').textContent = br3(real.razao);
+    document.getElementById('m-criada').textContent = br3(criada);
+    document.getElementById('m-ver').textContent =
+      r.razao >= 0.8 ? 'Dentro do limite de 0,80'
+      : criada < 0.04 ? 'Reprova, mas quase nada disso veio do modelo'
+      : 'Reprova na regra dos 4/5';
+    nota.textContent = c.nota;
+  }
+
+  /* --- animacao da execucao --- */
+  const dorme = ms => new Promise(r=>setTimeout(r,ms));
+  const rapido = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function linha(html, cls){
+    const d = document.createElement('span');
+    d.className = 'ln ' + (cls||'');
+    d.innerHTML = html + '\n';
+    d.style.display='block';
+    elTerm.appendChild(d);
+    elTerm.parentElement.scrollTop = elTerm.parentElement.scrollHeight;
+  }
+  function foco(id){
+    elCod.querySelectorAll('.blk').forEach(b=>{
+      if(b.id===id){ b.classList.add('on'); b.classList.remove('feito'); }
+      else if(b.classList.contains('on')){ b.classList.remove('on'); b.classList.add('feito'); }
+    });
+  }
+
+  async function rodar(){
+    if(rodando) return;
+    rodando = true; btnRodar.disabled = true; btnRodar.textContent = 'Rodando...';
+    elTerm.innerHTML = '';
+    const c = atual, pausa = rapido ? 60 : 620;
+
+    await dorme(30);
+    calcular();
+    const r = cache[c.id];
+
+    foco('k1');
+    linha('<span class="cmd">$ python modelo_credito.py</span>');
+    await dorme(pausa);
+    linha('gerando 6.000 pessoas...', 'out');
+    linha('56% negras · 44% brancas · 72% das negras na periferia', 'out');
+    await dorme(pausa);
+
+    foco('k2');
+    linha('<span class="cmd">calculando quem consegue pagar de fato</span>');
+    await dorme(pausa);
+    linha(`pagam: ${br(real.negra)}% das negras · ${br(real.branca)}% das brancas`, 'out');
+    linha(`razão da desigualdade real: ${br3(real.razao)}  ← o piso`, 'out');
+    await dorme(pausa);
+
+    foco('k3');
+    linha('<span class="cmd">aplicando o critério do analista do passado</span>');
+    await dorme(pausa);
+    linha(`aprovados: ${br(hist.negra)}% · ${br(hist.branca)}%`, 'out');
+    linha(`razão do histórico humano: ${br3(hist.razao)}`, 'out');
+    await dorme(pausa);
+
+    foco('k4');
+    linha('<span class="cmd">treinando LogisticRegression · 400 épocas</span>');
+    await dorme(pausa);
+    linha(`variáveis: ${(c.usa.includes('cep')?['cep']:[]).concat(['renda','idade','tempo_emprego']).join(', ')}`, 'out');
+    linha(c.usa.includes('raca')
+      ? 'a coluna "raca" ESTÁ no treino'
+      : 'a coluna "raca" NÃO está no treino', 'out');
+    await dorme(pausa);
+    linha('modelo treinado.', 'out');
+    await dorme(pausa*0.6);
+
+    foco('k5');
+    linha('<span class="cmd">auditando o resultado</span>');
+    await dorme(pausa);
+    linha(`aprovação do modelo: ${br(r.negra)}% · ${br(r.branca)}%`, 'out');
+    linha(`bons pagadores negados: ${br(r.bpn)}% · ${br(r.bpb)}%`, 'out');
+    await dorme(pausa);
+    linha(`razão 4/5 = ${br3(r.razao)}`, 'out');
+    linha(`herdado do mundo: ${br3(real.razao)} · acrescentado pelo modelo: ${br3(Math.max(0, real.razao - r.razao))}`, 'out');
+    linha(r.razao < 0.8
+      ? '<span class="bad">✗ REPROVA · indício de discriminação indireta</span>'
+      : '<span class="good">✓ dentro do limite de 0,80</span>', 'out');
+    linha('<span class="cursor"></span>');
+
+    mostrarResultado(c);
+    elCod.querySelectorAll('.blk').forEach(b=>{b.classList.remove('on');b.classList.add('feito')});
+    btnRodar.disabled = false; btnRodar.textContent = 'Rodar de novo';
+    rodando = false;
+  }
+
+  /* --- controles --- */
+  cenarios.forEach(c=>{
+    const b = document.createElement('button');
+    b.textContent = c.rotulo; b.dataset.id = c.id;
+    b.addEventListener('click',()=>{
+      if(rodando) return;
+      atual = c;
+      box.querySelectorAll('button').forEach(x=>x.classList.toggle('ativo', x.dataset.id===c.id));
+      pintarCodigo(c);
+      rodar();
+    });
+    box.appendChild(b);
+  });
+  box.querySelector('button').classList.add('ativo');
+
+  [sRegiao,sRaca].forEach(s=>s.addEventListener('input',()=>{
+    document.getElementById('l-regiao').textContent = (+sRegiao.value).toFixed(2).replace('.',',');
+    document.getElementById('l-raca').textContent = (+sRaca.value).toFixed(2).replace('.',',');
+    pintarCodigo(atual);
+  }));
+  btnRodar.addEventListener('click',rodar);
+
+  pintarCodigo(atual);
+  calcular();
+  mostrarResultado(atual);
+  elTerm.innerHTML = '<span class="cmd">$ </span><span class="cursor"></span>';
+
+  /* roda sozinho na primeira vez que a seção aparece */
+  const io = new IntersectionObserver(es=>{
+    es.forEach(e=>{ if(e.isIntersecting){ io.disconnect(); rodar(); } });
+  },{threshold:.35});
+  io.observe(document.querySelector('.lab-telas'));
+})();
+</script>
+</body>
+</html>
